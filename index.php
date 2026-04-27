@@ -29,13 +29,21 @@ if (empty($uri)) {
     include __DIR__ . '/templates/training.php';
 } elseif ($uri == 'faq') {
     include __DIR__ . '/templates/faq.php';
-} elseif ($uri == 'track-whatsapp') {
+} elseif ($uri == 'contact') {
+    include __DIR__ . '/templates/contact.php';
+} elseif ($uri == 'track-whatsapp' || $uri == 'track-whatsapp-api') {
     // Lead Tracker
     $db->insert('leads_whatsapp', [
         'page_url' => $_SERVER['HTTP_REFERER'] ?? 'direct',
         'user_ip' => $_SERVER['REMOTE_ADDR'],
         'user_agent' => $_SERVER['HTTP_USER_AGENT']
     ]);
+    
+    if ($uri == 'track-whatsapp-api') {
+        echo json_encode(['status' => 'success']);
+        exit;
+    }
+    
     $whatsapp_num = $db->getSetting('whatsapp_number', '2348000000000');
     header("Location: https://wa.me/$whatsapp_num?text=Hello,%20I'm%20interested%20in%20the%20Smart%20Investing%20training.");
     exit;
