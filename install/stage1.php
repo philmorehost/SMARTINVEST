@@ -27,7 +27,7 @@ $all_ok = !in_array(false, $requirements, true);
                 <?php echo $passed ? '✔ Passed' : '✖ Failed'; ?>
             </span>
         </li>
-    <?php endisset; ?>
+    <?php endforeach; ?>
 </ul>
 
 <?php if ($all_ok): ?>
