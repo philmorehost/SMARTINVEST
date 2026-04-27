@@ -67,8 +67,18 @@ if (empty($uri)) {
         // SMS Notification (PhilmoreSMS)
         if ($db->getSetting('sms_enabled') == '1') {
             $sms = new \SmartInvesting\SMS($db->getSetting('sms_token'), $db->getSetting('sms_sender_id'));
-            $msg = "New Enrollment: $name ($phone). Check admin panel for details.";
-            $admin_phone = $db->getSetting('whatsapp_number'); // Assume admin phone is same as whatsapp
+            
+            $sms_template = $db->getSetting('sms_template', 'New Lead: {name} ({phone}) enrolled for {course}. Check admin dashboard.');
+            $msg = str_replace(
+                ['{name}', '{phone}', '{course}'],
+                [$name, $phone, 'Beginner Training'],
+                $sms_template
+            );
+            
+            // Limit to 160 chars (1 page)
+            $msg = substr($msg, 0, 160);
+            
+            $admin_phone = $db->getSetting('whatsapp_number'); 
             $sms->send($admin_phone, $msg);
         }
 

@@ -28,6 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $db->updateSetting('smtp_pass', $_POST['smtp_pass']);
         $db->updateSetting('smtp_port', $_POST['smtp_port']);
         $success = "SMTP settings updated successfully.";
+    } elseif ($action === 'alerts') {
+        $db->updateSetting('email_template', $_POST['email_template']);
+        $db->updateSetting('sms_template', $_POST['sms_template']);
+        $success = "Alert templates updated successfully.";
     }
 }
 
@@ -44,6 +48,38 @@ $settings = [
     'smtp_user' => $db->getSetting('smtp_user'),
     'smtp_pass' => $db->getSetting('smtp_pass'),
     'smtp_port' => $db->getSetting('smtp_port'),
+    'email_template' => $db->getSetting('email_template', '
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body { font-family: "Inter", Arial, sans-serif; background-color: #f4f7f9; margin: 0; padding: 0; }
+                .wrapper { width: 100%; padding: 40px 0; }
+                .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+                .header { background-color: #1e3a8a; padding: 30px; text-align: center; }
+                .header h1 { color: #ffffff; margin: 0; font-size: 24px; }
+                .content { padding: 40px; color: #334155; line-height: 1.6; }
+                .footer { background-color: #f8fafc; padding: 20px; text-align: center; color: #64748b; font-size: 12px; }
+            </style>
+        </head>
+        <body>
+            <div class="wrapper">
+                <div class="container">
+                    <div class="header">
+                        <h1>{site_title}</h1>
+                    </div>
+                    <div class="content">
+                        <h2 style="color: #1e3a8a;">{subject}</h2>
+                        {content}
+                    </div>
+                    <div class="footer">
+                        <p>&copy; {year} {site_title}. All rights reserved.</p>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>'),
+    'sms_template' => $db->getSetting('sms_template', 'New Lead: {name} ({phone}) enrolled for {course}. Check admin dashboard.'),
 ];
 
 $tab = $_GET['tab'] ?? 'general';
@@ -51,8 +87,9 @@ $tab = $_GET['tab'] ?? 'general';
 
 <div class="tabs">
     <a href="?tab=general" class="tab <?php echo $tab == 'general' ? 'active' : ''; ?>">General</a>
-    <a href="?tab=sms" class="tab <?php echo $tab == 'sms' ? 'active' : ''; ?>">SMS API (PhilmoreSMS)</a>
+    <a href="?tab=sms" class="tab <?php echo $tab == 'sms' ? 'active' : ''; ?>">SMS API</a>
     <a href="?tab=smtp" class="tab <?php echo $tab == 'smtp' ? 'active' : ''; ?>">SMTP Email</a>
+    <a href="?tab=alerts" class="tab <?php echo $tab == 'alerts' ? 'active' : ''; ?>">Alert Templates</a>
 </div>
 
 <?php if ($success): ?>
@@ -152,6 +189,52 @@ $tab = $_GET['tab'] ?? 'general';
             <button type="submit" class="btn">Save SMTP Settings</button>
         </form>
     </div>
+<?php endif; ?>
+
+<?php if ($tab == 'alerts'): ?>
+    <div class="card">
+        <form method="POST">
+            <input type="hidden" name="action" value="alerts">
+            <div class="form-group">
+                <label>Email HTML Template</label>
+                <p style="font-size: 12px; color: var(--text-light); margin-bottom: 10px;">
+                    Use placeholders: <code>{subject}</code>, <code>{content}</code>, <code>{site_title}</code>, <code>{year}</code>
+                </p>
+                <textarea name="email_template" rows="15" style="font-family: monospace; font-size: 12px;"><?php echo htmlspecialchars($settings['email_template']); ?></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label>SMS Template (Max 160 chars recommended)</label>
+                <p style="font-size: 12px; color: var(--text-light); margin-bottom: 10px;">
+                    Use placeholders: <code>{name}</code>, <code>{phone}</code>, <code>{course}</code>
+                </p>
+                <textarea name="sms_template" id="sms_template" rows="3" maxlength="160"><?php echo htmlspecialchars($settings['sms_template']); ?></textarea>
+                <div id="sms_counter" style="font-size: 12px; text-align: right; margin-top: 5px; color: var(--text-light);">
+                    0 / 160 characters (1 unit)
+                </div>
+            </div>
+            
+            <button type="submit" class="btn">Save Templates</button>
+        </form>
+    </div>
+    
+    <script>
+    const smsInput = document.getElementById('sms_template');
+    const smsCounter = document.getElementById('sms_counter');
+    
+    function updateCounter() {
+        const len = smsInput.value.length;
+        smsCounter.textContent = `${len} / 160 characters (${Math.ceil(len/160)} unit${len > 160 ? 's' : ''})`;
+        if (len > 160) {
+            smsCounter.style.color = '#ef4444';
+        } else {
+            smsCounter.style.color = 'var(--text-light)';
+        }
+    }
+    
+    smsInput.addEventListener('input', updateCounter);
+    updateCounter();
+    </script>
 <?php endif; ?>
 
 <?php include 'footer.php'; ?>
