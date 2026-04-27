@@ -11,8 +11,8 @@ $stage = isset($_GET['stage']) ? (int)$_GET['stage'] : 1;
 $error = '';
 $success = '';
 
-// Check if already installed
-if (file_exists(__DIR__ . '/../config/database.php') && $stage < 4) {
+// Check if already installed (only redirect from Stage 1 if config exists)
+if (file_exists(__DIR__ . '/../config/database.php') && $stage == 1) {
     header('Location: /');
     exit;
 }

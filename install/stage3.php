@@ -16,7 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $hashed_pass = password_hash($admin_pass, PASSWORD_DEFAULT);
 
-        $stmt = $pdo->prepare("INSERT INTO admins (username, email, password, role) VALUES (?, ?, ?, 'admin')");
+        // Use INSERT IGNORE to avoid errors if the admin already exists
+        $stmt = $pdo->prepare("INSERT IGNORE INTO admins (username, email, password, role) VALUES (?, ?, ?, 'admin')");
         $stmt->execute([$admin_user, $admin_email, $hashed_pass]);
 
         // Initialize default settings
@@ -102,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ]
         ];
 
-        $stmt = $pdo->prepare("INSERT INTO pages (title, slug, content, meta_title, meta_description) VALUES (?, ?, ?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT IGNORE INTO pages (title, slug, content, meta_title, meta_description) VALUES (?, ?, ?, ?, ?)");
         foreach ($pages as $page) {
             $stmt->execute($page);
         }
@@ -115,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ['Is this guaranteed profit?', 'No, but you will learn informed investing.', 4]
         ];
 
-        $stmt = $pdo->prepare("INSERT INTO faqs (question, answer, display_order) VALUES (?, ?, ?)");
+        $stmt = $pdo->prepare("INSERT IGNORE INTO faqs (question, answer, display_order) VALUES (?, ?, ?)");
         foreach ($faqs as $faq) {
             $stmt->execute($faq);
         }
